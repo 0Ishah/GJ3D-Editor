@@ -17,18 +17,12 @@ namespace GJ3Editor
     public class Painter
     {
         public Graphics g { get; } //Main grapics element used to draw all of the meshes
-        public float time { get; set; } //Time ussed for autorotation
 
         // Hard coded matrices used for projection and rotation
         private Matrix OrthogrphicProjection;
         private Matrix RotationMatrix_X;
         private Matrix RotationMatrix_Y;
         private Matrix RotationMatrix_Z;
-
-        public int selectedVertex { get; set; } //Maintains the index of the selected vertex
-
-        public Vector3 rotation { get; set; } //Current andgle of XYZ rotation of the shape
-        public Vector3i autorotationAxis { get; set; } //Rotating axis value must be 1, while other must be 0
 
         //Data used for creating a matrix. Separate variables are created to improve readability
         private float Width;
@@ -40,7 +34,7 @@ namespace GJ3Editor
         private float Right;
         private float Left;
 
-        private Pen pen; //Pen used for drawing all of the graphics
+        private Pen mainPen; //Pen used for drawing the frame of the 
 
 
         /// <summary>
@@ -92,7 +86,46 @@ namespace GJ3Editor
             RotationMatrix_Z.m[2, 2] = 1;
 
 
-            pen = new Pen(Color.Black, 1);
+            mainPen = new Pen(Color.Black, 1);
+        }
+
+        /// <summary>
+        /// Converts the position of the vector with origin at center to the actual position on the scrren with the origin at top left
+        /// </summary>
+        /// <param name="original">original vector</param>
+        /// <returns>Centralized vector</returns>
+        private Vector3 CentralizeVector(Vector3 original)
+        {
+            Vector3 modified = original;
+
+            modified.X += Width / 2;
+            modified.Y = Height / 2 - original.Y;
+
+            return modified;
+        }
+
+        /// <summary>
+        /// An override for the Graphics.DrawLine 
+        /// Draws a line sifting the original coordinates to the center of the screen
+        /// </summary>
+        /// <param name="pen">Pen</param>
+        /// <param name="start">Point 1</param>
+        /// <param name="end">Point 2</param>
+        private void DrawLine(Pen pen, Vector3 start, Vector3 end)
+        {
+            g.DrawLine(pen, CentralizeVector(start).X, CentralizeVector(start).Y, CentralizeVector(end).X, CentralizeVector(end).Y);
+        }
+
+        /// <summary>
+        /// An override for the Graphics.DrawEllipse
+        /// </summary>
+        /// <param name="pen">Pen</param>
+        /// <param name="position">Center position</param>
+        /// <param name="width">Ellipse width in px</param>
+        /// <param name="height">Ellipse height in px</param>
+        private void DrawEllipse(Pen pen, Vector3 position, float width, float height)
+        {
+            g.DrawEllipse(pen, CentralizeVector(position).X, CentralizeVector(position).Y, width, height);
         }
 
         /// <summary>
@@ -114,7 +147,7 @@ namespace GJ3Editor
         /// <param name="color">clor</param>
         public void DrawMesh(Mesh mesh, Color color)
         {
-            pen.Color = color;
+            mainPen.Color = color;
             DrawMesh(mesh);
         }
 
@@ -136,9 +169,9 @@ namespace GJ3Editor
 
             //Draw the triangles, inverting the y coordinate.
             //Y is inverted for shifing the origin of the display to the center
-            g.DrawLine(pen, projectedVector1.X, -projectedVector1.Y, projectedVector2.X, -projectedVector2.Y);
-            g.DrawLine(pen, projectedVector2.X, -projectedVector2.Y, projectedVector3.X, -projectedVector3.Y);
-            g.DrawLine(pen, projectedVector3.X, -projectedVector3.Y, projectedVector1.X, -projectedVector1.Y);
+            DrawLine(mainPen, projectedVector1, projectedVector2);
+            DrawLine(mainPen, projectedVector2, projectedVector3);
+            DrawLine(mainPen, projectedVector3, projectedVector1);
         }
 
         /// <summary>
@@ -147,7 +180,7 @@ namespace GJ3Editor
         /// <param name="pos">position</param>
         public void DrawPoint(Vector3 pos)
         {
-            g.DrawEllipse(pen, pos.X, -pos.Y, 3, 3);
+            DrawEllipse(mainPen, pos, 3, 3);
         }
 
         /// <summary>
@@ -157,7 +190,7 @@ namespace GJ3Editor
         /// <param name="color">color</param>
         public void DrawPoint(Vector3 pos, Color color)
         {
-            pen.Color = color;
+            mainPen.Color = color;
             DrawPoint(pos);
         }
 
@@ -170,25 +203,25 @@ namespace GJ3Editor
             Vector3 tempStart;
             Vector3 tempEnd;
 
-            pen.Width = 2;
-            pen.Color = Color.Red;
+            mainPen.Width = 2;
+            mainPen.Color = Color.Red;
             tempStart = ProjectVector((pos - new Vector3(20, 0, 0)), OrthogrphicProjection, false);
             tempEnd = ProjectVector(pos + new Vector3(20, 0, 0), OrthogrphicProjection, false);
 
-            g.DrawLine(pen, tempStart.X, -tempStart.Y, tempEnd.X, -tempEnd.Y);
+            DrawLine(mainPen, tempStart, tempEnd);
 
-            pen.Color = Color.Green;
+            mainPen.Color = Color.Green;
             tempStart = ProjectVector(pos - new Vector3(0, 20, 0), OrthogrphicProjection, false);
             tempEnd = ProjectVector(pos + new Vector3(0, 20, 0), OrthogrphicProjection, false);
 
-            g.DrawLine(pen, tempStart.X, -tempStart.Y, tempEnd.X, -tempEnd.Y);
+            DrawLine(mainPen, tempStart, tempEnd);
 
-            pen.Color = Color.Blue;
+            mainPen.Color = Color.Blue;
             tempStart = ProjectVector(pos - new Vector3(0, 0, 20), OrthogrphicProjection, false);
             tempEnd = ProjectVector(pos + new Vector3(0, 0, 20), OrthogrphicProjection, false);
 
-            g.DrawLine(pen, tempStart.X, -tempStart.Y, tempEnd.X, -tempEnd.Y);
-            pen.Width = 1;
+            DrawLine(mainPen, tempStart, tempEnd);
+            mainPen.Width = 1;
         }
 
         /// <summary>

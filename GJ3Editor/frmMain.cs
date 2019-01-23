@@ -37,8 +37,6 @@ namespace GJ3Editor
         {
             InitializeCanvas();
             painter = new Painter();
-            //Shifthig the origin of the coordinates to the center of the screen
-            painter.g.TranslateTransform(canvas.Width / 2, canvas.Height / 2);
             KeyPreview = true;
             InitializeTimer(RotationTimer);
         }

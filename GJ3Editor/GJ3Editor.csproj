@@ -56,6 +56,7 @@
     <Compile Include="Info\Data.cs" />
     <Compile Include="Painter.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Manipulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Mesh.cs" />
     <Compile Include="Info\Structures.cs" />
